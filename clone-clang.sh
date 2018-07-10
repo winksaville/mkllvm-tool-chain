@@ -1,9 +1,12 @@
 #!/usr/bin/env bash
-# Set default arguments
+# Clone llvm tool-chain.
+#
+# This is similar to the get-llvm-src-$(LLVM_PROJ) target,
+# but might be useful if just cloning is desired.
 
 LLVM_URL=https://github.com/llvm-mirror
 LLVM_SRC_DIR=src
-LLVM_BRANCH=-b release_60
+LLVM_BRANCH="-b master"
 LLVM_SINGLE_BRANCH=--no-single-branch
 
 # Process arguments
@@ -18,15 +21,17 @@ while [ $# -gt 0 ]; do
     single-branch=yes)
       LLVM_SINGLE_BRANCH="--single-branch"
       ;;
-    single_branch=no)
+    single-branch=no)
       LLVM_SINGLE_BRANCH="--no-single-branch"
       ;;
+    src-dir=*)
+      LLVM_SRC_DIR="${1#*=}"
+      ;;
     *)
-      printf "Error: Invalid argument, expecting:\n"
+      printf "Error: Invalid argument, '$1' expecting:\n"
       printf "  depth=N    where N is the depth of the clone\n"
       printf "             default is full depth\n"
       printf "  branch=XX  where XX is the branch to clone\n"
-      printf "             default is release_60\n"
       printf "             default is release_60\n"
       printf "  single_branch={yes|no}\n"
       printf "             yes means only the single branch is cloned\n"
@@ -52,16 +57,5 @@ git clone ${LLVM_SRC_DEPTH} ${LLVM_BRANCH} ${LLVM_URL}/llvm.git ${LLVM_SINGLE_BR
 && (git -C ${LLVM_SRC_DIR}/projects clone ${LLVM_SRC_DEPTH} ${LLVM_BRANCH} ${LLVM_SINGLE_BRANCH} ${LLVM_URL}/openmp.git openmp) \
 && (git -C ${LLVM_SRC_DIR}/projects clone ${LLVM_SRC_DEPTH} ${LLVM_BRANCH} ${LLVM_SINGLE_BRANCH} ${LLVM_URL}/libcxx libcxx) \
 && (git -C ${LLVM_SRC_DIR}/projects clone ${LLVM_SRC_DEPTH} ${LLVM_BRANCH} ${LLVM_SINGLE_BRANCH} ${LLVM_URL}/libcxxabi libcxxabi) \
-&& (git -C ${LLVM_SRC_DIR}/projects clone ${LLVM_SRC_DEPTH} ${LLVM_BRANCH} ${LLVM_SINGLE_BRANCH} https://github.com/llvm-mirror/test-suite test-suite)
-
-#&& (cd llvm/tools && git clone ${DEPTH} --no-single-branch https://github.com/llvm-mirror/clang.git clang) \
-#&& (cd llvm/tools/clang/tools && git clone ${DEPTH} --no-single-branch https://github.com/llvm-mirror/clang-tools-extra.git extra) \
-#&& (cd llvm/tools && git clone ${DEPTH} --no-single-branch https://github.com/llvm-mirror/lld.git lld) \
-#&& (cd llvm/tools && git clone ${DEPTH} --no-single-branch https://github.com/llvm-mirror/polly.git polly) \
-#&& (cd llvm/projects && git clone ${DEPTH} --no-single-branch https://github.com/llvm-mirror/compiler-rt compiler-rt) \
-#&& (cd llvm/projects && git clone ${DEPTH} --no-single-branch https://github.com/llvm-mirror/openmp.git openmp) \
-#&& (cd llvm/projects && git clone ${DEPTH} --no-single-branch https://github.com/llvm-mirror/libcxx libcxx) \
-#&& (cd llvm/projects && git clone ${DEPTH} --no-single-branch https://github.com/llvm-mirror/libcxxabi libcxxabi) \
-#&& (cd llvm/projects && git clone ${DEPTH} --no-single-branch https://github.com/llvm-mirror/test-suite test-suite)
-
-cd llvm
+&& (git -C ${LLVM_SRC_DIR}/projects clone ${LLVM_SRC_DEPTH} ${LLVM_BRANCH} ${LLVM_SINGLE_BRANCH} https://github.com/llvm-mirror/test-suite test-suite) \
+&& cd ${LLVM_SRC_DIR}
