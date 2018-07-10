@@ -1,0 +1,7 @@
+/main-*
+/installed-*
+/built-*
+/get-*
+src/
+dist/
+build/
