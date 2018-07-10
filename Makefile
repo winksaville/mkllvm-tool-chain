@@ -14,8 +14,9 @@
 #
 # clean: Remove build/ and dist/
 # distclean: remove build/, dist/ and src/
-# llvm-6.0.0: Get, Build, Install llvm-6.0.0
-# llvm-5.0.0: Get, Build, Install llvm-5.0.0
+# llvm-master: Get, Build, Install master
+# llvm-6.0.0: Get, Build, Install release_60
+# llvm-5.0.0: Get, Build, Install release_50
 # llvm-default: Get, Build, Install the default which is llvm-5.0.0
 # llvm-current: Build, Install what ever is in src/
 # test: quick test compiling main.cpp and running it statically and shared.
