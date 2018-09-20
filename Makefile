@@ -7,6 +7,7 @@
 #   help
 #   clean
 #   distclean
+#   llvm-7.0.0
 #   llvm-6.0.0
 #   llvm-5.0.0
 #   llvm-default
@@ -42,6 +43,11 @@ else ifeq ($(MAKECMDGOALS),llvm-master)
   GET_LLVM_SRC_TARGET := get-llvm-src-$(LLVM_PROJ)
   LLVM_SRC_DEPTH := --depth 1
   LLVM_BRANCH :=
+else ifeq ($(MAKECMDGOALS),llvm-7.0.0)
+  LLVM_PROJ := llvm-7.0.0
+  GET_LLVM_SRC_TARGET := get-llvm-src-$(LLVM_PROJ)
+  LLVM_SRC_DEPTH := --depth 1
+  LLVM_BRANCH := -b release_70
 else ifeq ($(MAKECMDGOALS),llvm-6.0.0)
   LLVM_PROJ := llvm-6.0.0
   GET_LLVM_SRC_TARGET := get-llvm-src-$(LLVM_PROJ)
@@ -210,6 +216,7 @@ Valid targets are:
   distclean
   clean
   distclean
+  llvm-7.0.0
   llvm-6.0.0
   llvm-5.0.0
   llvm-default
@@ -222,6 +229,7 @@ help: this help text
 clean: Remove build/ and dist/
 distclean: remove build/, dist/ and src/
 llvm-master: Get, Build, Install master
+llvm-7.0.0: Get, Build, Install release_70
 llvm-6.0.0: Get, Build, Install release_60
 llvm-5.0.0: Get, Build, Install release_50
 llvm-default: Get, Build, Install the default which is llvm-5.0.0
