@@ -4,19 +4,28 @@
 # is assumed.
 #
 # A valid targets are:
-#   help
-#   clean
-#   distclean
+#   llvm-default (the default target)
 #   llvm-7.0.0
 #   llvm-6.0.0
 #   llvm-5.0.0
-#   llvm-default
 #   llvm-current
 #   llvm-get-src
+#   help
+#   clean
+#   distclean
 #   test
 #   rebuild
 #
 # Based on [yurydelendik wasmllvm](https://gist.github.com/yurydelendik/4eeff8248aeb14ce763e)
+#
+# Defaults:
+#   verbose              (0 off, 1 on)
+#   LLVM_URL             (URL to get source)
+#   LLVM_BUILD_ENGINE    (Ninja, "Unix Makefiles")
+#   LLVM_BUILD_TYPE      (Release, Debug)
+#   LLVM_INSTALL_DIR     (Full path to install llvm)
+#   LLVM_LINK_LLVM_DYLIB (ON or OFF)
+#   LLVM_LINKER          (gold, bfd)
 
 ROOT_DIR := $(shell pwd)
 LLVM_URL := https://github.com/llvm-mirror
@@ -104,6 +113,7 @@ LLVM_BUILD_ENGINE := Ninja
 #LLVM_BUILD_ENGINE := "Unix Makefiles"
 LLVM_BUILD_TYPE := Release
 LLVM_INSTALL_DIR := $(ROOT_DIR)/dist
+LLVM_LINK_LLVM_DYLIB := ON
 
 LLVM_LINKER := gold
 #LLVM_LINKER := bfd
@@ -118,7 +128,8 @@ else
   LLVM_USE_LINKER=-DLLVM_USE_LINKER=$(LLVM_LINKER)
 endif
 
-ifneq (,$(verbose))
+verbose=0
+ifeq (1,$(verbose))
   VERBOSE_CMAKE := -DCMAKE_VERBOSE_MAKEFILE=ON
 endif
 
@@ -169,7 +180,7 @@ built-llvm-$(LLVM_PROJ): $(LLVM_BUILD_DIR)/generated-llvm-makefile-$(LLVM_PROJ)
 $(LLVM_BUILD_DIR)/generated-llvm-makefile-$(LLVM_PROJ): $(GET_LLVM_SRC_TARGET)
 	@echo generate $(LLVM_PROJ) `git -C src log -1 --pretty="format:hash=%h ref=%d subject=%s"`
 	mkdir -p $(LLVM_BUILD_DIR)
-	cd $(LLVM_BUILD_DIR); cmake -G $(LLVM_BUILD_ENGINE) $(VERBOSE_CMAKE) $(LLVM_USE_LINKER) -DCMAKE_INSTALL_PREFIX=$(LLVM_INSTALL_DIR) -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=WebAssembly -DCMAKE_BUILD_TYPE=$(LLVM_BUILD_TYPE) $(LLVM_SRC_DIR)
+	cd $(LLVM_BUILD_DIR); cmake -G $(LLVM_BUILD_ENGINE) $(VERBOSE_CMAKE) $(LLVM_USE_LINKER) -DCMAKE_INSTALL_PREFIX=$(LLVM_INSTALL_DIR) -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=WebAssembly -DCMAKE_BUILD_TYPE=$(LLVM_BUILD_TYPE) -DLLVM_LINK_LLVM_DYLIB=$(LLVM_LINK_LLVM_DYLIB) $(LLVM_SRC_DIR)
 	touch $(LLVM_BUILD_DIR)/generated-llvm-makefile-$(LLVM_PROJ)
 
 get-nothing: clean
@@ -211,43 +222,55 @@ test:
 	./main-lld-shared 4 5 6
 
 define helpdata
+make {target} {options}
+
 Valid targets are:
-  help
-  distclean
-  clean
-  distclean
-  llvm-7.0.0
-  llvm-6.0.0
-  llvm-5.0.0
-  llvm-default
-  llvm-current
-  llvm-get-src
-  test
-  rebuild
+  help          this help text
+  clean         Remove build/ and dist/
+  distclean     remove build/, dist/ and src/
+  llvm-master   Get, Build, Install master
+  llvm-7.0.0    Get, Build, Install release_70
+  llvm-6.0.0    Get, Build, Install release_60
+  llvm-5.0.0    Get, Build, Install release_50
+  llvm-default  Get, Build, Install the default which is llvm-5.0.0
+  llvm-current  Build, Install what ever is in src/
+  llvm-get-src  Only gets the sources of the specified branch
+                llvm-branch=xxx where xxx is {master|release_60|...}.
+                You may also want to supply LLVM_DEPTH=--depth 1 and
+                LLVM_SINGLE_BRANCH=--no-single-branch as default is --single-branch
+  test          quick test compiling main.cpp and running it statically and shared.
+                Currently static linking with lld is broken,
+		see https://bugs.llvm.org/show_bug.cgi?id=38074
+                so gold is used.
+  rebuild       Rebuild the sources unconditionally
 
-help: this help text
-clean: Remove build/ and dist/
-distclean: remove build/, dist/ and src/
-llvm-master: Get, Build, Install master
-llvm-7.0.0: Get, Build, Install release_70
-llvm-6.0.0: Get, Build, Install release_60
-llvm-5.0.0: Get, Build, Install release_50
-llvm-default: Get, Build, Install the default which is llvm-5.0.0
-llvm-current: Build, Install what ever is in src/
-llvm-get-src: Only gets the sources of the specified branch
-              llvm-branch=xxx where xxx is {master|release_60|...}.
-              You may also want to supply LLVM_DEPTH=--depth 1 and
-              LLVM_SINGLE_BRANCH=--no-single-branch as default is --single-branch
-test: quick test compiling main.cpp and running it statically and shared.
-      Currently static linking with lld is broken, see https://bugs.llvm.org/show_bug.cgi?id=38074
-      so using gold.
-rebuild: Rebuild the sources unconditionally
+Valid options are:
+  verbose=$(verbose) (0 off, 1 on)
+  LLVM_URL=$(LLVM_URL) (URL to get source)
+  LLVM_BUILD_ENGINE=$(LLVM_BUILD_ENGINE) (Ninja, "Unix Makefiles")
+  LLVM_BUILD_TYPE=$(LLVM_BUILD_TYPE) (Release, Debug)
+  LLVM_INSTALL_DIR=$(LLVM_INSTALL_DIR) (<Full path> to install llvm)
+  LLVM_LINK_LLVM_DYLIB=$(LLVM_LINK_LLVM_DYLIB) (ON or OFF)
+  LLVM_LINKER=$(LLVM_LINKER) (gold, bfd)
 
-In the above Get, Build and Install are conditional
-based on a file created if the operation was previously
-successful. Specifically modifying the contents of src/
-does not cause a rebuild, you'll need to specify the
-rebuild target.
+  Default options that can be overridden on command line using XXXX=YYYY
+  for example to change build type add LLVM_BUILD_TYPE=Debug to command line.
+
+Notes:
+  In the above Get, Build and Install are conditional
+  based on a file created if the operation was previously
+  successful. Specifically modifying the contents of src/
+  does not cause a rebuild, you'll need to specify the
+  rebuild target.
+
+  LLVM_LINK_LLVM_DYLIB=ON causes clang to default the compiled programs
+  to dynamic link to the libLLVM-X.so. On linux you may need to set the
+  LD_LIBRARY_PATH enviornment variable to your LLVM_INSTALL_PATH so the
+  libLLVM-X.so is found when running the app. This may not be required if
+  the -L<LLVM_INSTALL_PATH> is passed to clang.
+
+  Use llvm-config to get configuration information such as
+  option flags, directories for libraries and include files ...
 
 endef
 

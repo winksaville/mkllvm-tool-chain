@@ -1,5 +1,10 @@
 # Make llvm tool-chain
 
+**See "make help" for the most current information.**
+
+Use llvm-config to get configuration information such as
+option flags, directories for libraries and include files ...
+
 There are a number of targets, see Makefile.
 As an example, here's how to build master:
 ```bash
