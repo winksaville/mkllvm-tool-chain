@@ -1,45 +1,35 @@
 # Build llvm library
 #
-# If target (aka. MAKECMDGOALS) is empty then llvm-default
-# is assumed.
+# Originally based on [yurydelendik wasmllvm](https://gist.github.com/yurydelendik/4eeff8248aeb14ce763e)
 #
-# A valid targets are:
-#   llvm-default (the default target)
-#   llvm-7.0.0
-#   llvm-6.0.0
-#   llvm-5.0.0
-#   llvm-current
-#   llvm-get-src
-#   help
-#   clean
-#   distclean
-#   test
-#   rebuild
-#
-# Based on [yurydelendik wasmllvm](https://gist.github.com/yurydelendik/4eeff8248aeb14ce763e)
-#
-# Defaults:
-#   verbose              (0 off, 1 on)
-#   LLVM_URL             (URL to get source)
-#   LLVM_BUILD_ENGINE    (Ninja, "Unix Makefiles")
-#   LLVM_BUILD_TYPE      (Release, Debug)
-#   LLVM_INSTALL_DIR     (Full path to install llvm)
-#   LLVM_LINK_LLVM_DYLIB (ON or OFF)
-#   LLVM_LINKER          (gold, bfd)
+# Help is available with:
+# $ make help
 
 ROOT_DIR := $(shell pwd)
-LLVM_URL := https://github.com/llvm-mirror
-
-ifeq (,$(MAKECMDGOALS))
-  MAKECMDGOALS := llvm-default
-endif
+LLVM_URL := https://github.com/llvm
 
 #$(warning MAKECMDGOALS=$(MAKECMDGOALS))
 
 LLVM_SINGLE_BRANCH := --single-branch
+default-branch := release/7.x
 
 ifeq ($(MAKECMDGOALS),rebuild)
-  LLVM_PROJ := llvm-current
+  LLVM_PROJ := current
+  GET_LLVM_SRC_TARGET := get-nothing
+  LLVM_SRC_DEPTH :=
+  LLVM_BRANCH :=
+else ifeq ($(MAKECMDGOALS),dobuild)
+  LLVM_PROJ := current
+  GET_LLVM_SRC_TARGET := get-nothing
+  LLVM_SRC_DEPTH :=
+  LLVM_BRANCH :=
+else ifeq ($(MAKECMDGOALS),buildit)
+  LLVM_PROJ := current
+  GET_LLVM_SRC_TARGET := get-nothing
+  LLVM_SRC_DEPTH :=
+  LLVM_BRANCH :=
+else ifeq ($(MAKECMDGOALS),install)
+  LLVM_PROJ := current
   GET_LLVM_SRC_TARGET := get-nothing
   LLVM_SRC_DEPTH :=
   LLVM_BRANCH :=
@@ -47,67 +37,40 @@ else ifeq ($(MAKECMDGOALS),clean)
   # Nothing to init
 else ifeq ($(MAKECMDGOALS),distclean)
   # Nothing to init
-else ifeq ($(MAKECMDGOALS),llvm-master)
-  LLVM_PROJ := llvm-master
-  GET_LLVM_SRC_TARGET := get-llvm-src-$(LLVM_PROJ)
-  LLVM_SRC_DEPTH := --depth 1
-  LLVM_BRANCH :=
-else ifeq ($(MAKECMDGOALS),llvm-7.0.0)
-  LLVM_PROJ := llvm-7.0.0
-  GET_LLVM_SRC_TARGET := get-llvm-src-$(LLVM_PROJ)
-  LLVM_SRC_DEPTH := --depth 1
-  LLVM_BRANCH := -b release_70
-else ifeq ($(MAKECMDGOALS),llvm-6.0.0)
-  LLVM_PROJ := llvm-6.0.0
-  GET_LLVM_SRC_TARGET := get-llvm-src-$(LLVM_PROJ)
-  LLVM_SRC_DEPTH := --depth 1
-  LLVM_BRANCH := -b release_60
-else ifeq ($(MAKECMDGOALS),llvm-5.0.0)
-  LLVM_PROJ := llvm-5.0.0
-  GET_LLVM_SRC_TARGET := get-llvm-src-$(LLVM_PROJ)
-  LLVM_SRC_DEPTH := --depth 1
-  LLVM_BRANCH := -b release_39
-else ifeq ($(MAKECMDGOALS),llvm-get-src)
-  ifeq ($(llvm-branch),)
-    $(error "llvm-branch was not specified, expecting master|release_60|...\n" \
-"You may also want to supply LLVM_SRC_DEPTH=--depth 1 and\n" \
-"LLVM_SINGLE_BRANCH=--no-single-branch as default is --single-branch.")
+else ifeq ($(MAKECMDGOALS),test)
+  # Nothing to do 
+else ifeq ($(MAKECMDGOALS),help)
+  # Nohting to do
+else ifeq ($(MAKECMDGOALS),build)
+  ifeq ($(branch),)
+    $(error "'branch' was not specified, expecting master|release/X.x|...\n")
   endif
-  LLVM_PROJ=llvm-$(llvm-branch)
-  LLVM_BRANCH=-b $(llvm-branch)
+  LLVM_PROJ := llvm-$(subst /,-,$(branch))
+  GET_LLVM_SRC_TARGET := get-llvm-src-$(LLVM_PROJ)
+  LLVM_SRC_DEPTH := --depth 1
+  LLVM_BRANCH := -b $(branch)
+else ifeq ($(MAKECMDGOALS),get-src)
+  ifeq ($(branch),)
+    $(error "'branch' was not specified, expecting master|release/X.x|...\n")
+  endif
+  LLVM_PROJ=llvm-$(subst /,-,$(branch))
+  LLVM_BRANCH=-b $(branch)
   GET_LLVM_SRC_TARGET := get-llvm-src-$(LLVM_PROJ)
   $(warning "LLVM_PROJ=$(LLVM_PROJ)")
   $(warning "LLVM_BRANCH=$(LLVM_BRANCH)")
   $(warning "LLVM_SRC_DEPTH=$(LLVM_SRC_DEPTH)")
   $(warning "LLVM_SINGLE_BRANCH=$(LLVM_SINGLE_BRANCH)")
-else ifeq ($(MAKECMDGOALS),llvm-current)
-  LLVM_PROJ := llvm-current
-  GET_LLVM_SRC_TARGET := get-nothing
-  LLVM_SRC_DEPTH :=
-  LLVM_BRANCH :=
-else ifeq ($(MAKECMDGOALS),llvm-default)
-  ## Use get-default-llvm-src which gets the "current" submodule
-  #LLVM_PROJ := llvm-default
-  #GET_LLVM_SRC_TARGET := get-default-llvm-src
-  #LLVM_SRC_DEPTH := --depth 1
-  #LLVM_URL :=
-  #LLVM_BRANCH :=
-
-  # Default to llvm-5.0.0
-  LLVM_PROJ := llvm-5.0.0
+else ifeq ($(MAKECMDGOALS),default)
+  LLVM_PROJ := llvm-$(subst /,-,$(default-branch))
   GET_LLVM_SRC_TARGET := get-llvm-src-$(LLVM_PROJ)
   LLVM_SRC_DEPTH := --depth 1
-  LLVM_BRANCH := -b release_50
-else ifeq ($(MAKECMDGOALS),test)
-  # Nothing to do 
-else ifeq ($(MAKECMDGOALS),help)
-  # Nohting to do
+  LLVM_BRANCH := -b $(default-branch)
 else
-  $(error Uknown target '$(MAKECMDGOALS)', someone did not pass a goal)
+  $(error "No target specified, execute 'make help'")
 endif
 
 LLVM_SRC_DIR := $(ROOT_DIR)/src
-LLVM_BUILD_DIR := $(ROOT_DIR)/build
+LLVM_BUILD_DIR := $(LLVM_SRC_DIR)/build
 
 LLVM_BUILD_ENGINE := Ninja
 #LLVM_BUILD_ENGINE := "Unix Makefiles"
@@ -115,18 +78,26 @@ LLVM_BUILD_TYPE := Release
 LLVM_INSTALL_DIR := $(ROOT_DIR)/dist
 LLVM_LINK_LLVM_DYLIB := ON
 
+# Befault build only llvm, no other projects. Otherwise provide list on command line
+sub-projects :=
+
+# Default all if desired
+#sub-projects="clang;clang-tools-extra;libcxx;libcxxabi;libunwind;lldb;compiler-rt;lld;polly;debuginfo-tests"
+
+# Default linker
 LLVM_LINKER := gold
 #LLVM_LINKER := bfd
-ifeq (llvm-5.0.0,$(LLVM_PROJ))
-  # 3.9.1 doesn't support -DLLVM_USE_LINKER so make it empty to supress a warning
-  #LLVM_USE_LINKER :=
 
-  # Fix a compile error that xlocale.h is not found, this is because
-  # Arch Linux is using glibc >= version 2.26 where it was renamed to Xlocale.h
-  #$(shell sudo ln -sfn /usr/include/locale.h /usr/include/xlocale.h)
+ifeq ($(LLVM_PROJ),llvm-release-3.9.x)
+  # if default is 3.9.x -DLLVM_USE_LINKER isn't supported
+  LLVM_USE_LINKER :=
 else
   LLVM_USE_LINKER=-DLLVM_USE_LINKER=$(LLVM_LINKER)
 endif
+
+# Fix a compile error that xlocale.h is not found, this is because
+# Arch Linux is using glibc >= version 2.26 where it was renamed to Xlocale.h
+#$(shell sudo ln -sfn /usr/include/locale.h /usr/include/xlocale.h)
 
 verbose=0
 ifeq (1,$(verbose))
@@ -136,7 +107,7 @@ endif
 ifeq ($(LLVM_BUILD_ENGINE),Ninja)
 MAKE := ninja
 MAKEFILE := build.ninja
-  ifeq ($(VERBOSE_CMAKE),-DCMAKE_VERBOSE_MAKEFILE=ON)
+  ifeq ($(VERBOSE_CM KE),-DCMAKE_VERBOSE_MAKEFILE=ON)
     MAKE_FLAGS := -v
   else
     MAKE_FLAGS :=
@@ -147,16 +118,31 @@ MAKEFILE := Makefile
 MAKE_FLAGS :=
 endif
 
-$(LLVM_PROJ): built-llvm-$(LLVM_PROJ)
+build default $(LLVM_PROJ): rebuild
 
 .PHONY: rebuild
-rebuild: clean-built-installed
-	@echo building $(LLVM_PROJ) `git -C $(LLVM_SRC_DIR) log -1 --pretty="format:hash=%h ref=%d subject=%s"`
+rebuild: generated-llvm-makefile-$(LLVM_PROJ)
+	make buildit
+	make install
+
+.PHONY: buildit
+buildit: 
+	@echo building $(LLVM_PROJ) `git -C $(LLVM_SRC_DIR) log -1 --pretty="format:hash=%h ref=%d"`
+	mkdir -p $(LLVM_BUILD_DIR)
 	$(MAKE) $(MAKE_FLAGS) -C $(LLVM_BUILD_DIR)
-	touch built-llvm-$(LLVM_PROJ)
+	touch built-$(LLVM_PROJ)
+
+.PHONY: install
+install:
 	@echo installing $(LLVM_PROJ)
 	$(MAKE) -C $(LLVM_BUILD_DIR) install
 	touch installed-llvm-$(LLVM_PROJ)
+
+generated-llvm-makefile-$(LLVM_PROJ): llvm-get-src
+	@echo generate $(LLVM_PROJ) `git -C src log -1 --pretty="format:hash=%h ref=%d subject=%s"`
+	mkdir -p $(LLVM_BUILD_DIR)
+	cd $(LLVM_BUILD_DIR); cmake -G $(LLVM_BUILD_ENGINE) $(VERBOSE_CMAKE) $(LLVM_USE_LINKER) -DLLVM_ENABLE_PROJECTS="$(sub-projects)" -DCMAKE_INSTALL_PREFIX=$(LLVM_INSTALL_DIR) -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=WebAssembly -DCMAKE_BUILD_TYPE=$(LLVM_BUILD_TYPE) -DLLVM_LINK_LLVM_DYLIB=$(LLVM_LINK_LLVM_DYLIB) $(LLVM_SRC_DIR)/llvm
+	touch generated-llvm-makefile-$(LLVM_PROJ)
 
 .PHONY: clean
 clean: clean-except-get
@@ -172,46 +158,17 @@ clean-except-get: clean-built-installed
 
 .PHONY: clean-built-installed
 clean-built-installed:
-	rm -f built-* installed-* main-*
-
-built-llvm-$(LLVM_PROJ): $(LLVM_BUILD_DIR)/generated-llvm-makefile-$(LLVM_PROJ)
-	make rebuild
-
-$(LLVM_BUILD_DIR)/generated-llvm-makefile-$(LLVM_PROJ): $(GET_LLVM_SRC_TARGET)
-	@echo generate $(LLVM_PROJ) `git -C src log -1 --pretty="format:hash=%h ref=%d subject=%s"`
-	mkdir -p $(LLVM_BUILD_DIR)
-	cd $(LLVM_BUILD_DIR); cmake -G $(LLVM_BUILD_ENGINE) $(VERBOSE_CMAKE) $(LLVM_USE_LINKER) -DCMAKE_INSTALL_PREFIX=$(LLVM_INSTALL_DIR) -DLLVM_EXPERIMENTAL_TARGETS_TO_BUILD=WebAssembly -DCMAKE_BUILD_TYPE=$(LLVM_BUILD_TYPE) -DLLVM_LINK_LLVM_DYLIB=$(LLVM_LINK_LLVM_DYLIB) $(LLVM_SRC_DIR)
-	touch $(LLVM_BUILD_DIR)/generated-llvm-makefile-$(LLVM_PROJ)
-
-get-nothing: clean
-
-get-default-llvm-src:
-	@echo get-default-llvm-src
-	make clean
-	rm -rf $(LLVM_SRC_DIR)
-	mkdir $(LLVM_SRC_DIR)
-	git submodule init
-	git submodule update $(LLVM_SRC_DEPTH)
-	touch get-default-llvm-src
+	rm -f generated-llvm-makefile-* built-* installed-* main-*
 
 llvm-get-src: $(GET_LLVM_SRC_TARGET)
 
-get-llvm-src-$(LLVM_PROJ):
-	@echo get-llvm-src-$(LLVM_PROJ)
-	make clean
-	rm -rf $(LLVM_SRC_DIR)
-	git clone $(LLVM_SRC_DEPTH) $(LLVM_BRANCH) $(LLVM_URL)/llvm.git $(LLVM_SINGLE_BRANCH) $(LLVM_SRC_DIR)
-	git -C $(LLVM_SRC_DIR)/tools clone ${LLVM_SRC_DEPTH} $(LLVM_BRANCH) $(LLVM_SINGLE_BRANCH) ${LLVM_URL}/clang.git clang
-	git -C $(LLVM_SRC_DIR)/tools/clang/tools clone ${LLVM_SRC_DEPTH} $(LLVM_BRANCH) $(LLVM_SINGLE_BRANCH) ${LLVM_URL}/clang-tools-extra.git extra
-	git -C $(LLVM_SRC_DIR)/tools clone ${LLVM_SRC_DEPTH} $(LLVM_BRANCH) $(LLVM_SINGLE_BRANCH) ${LLVM_URL}/lld.git lld
-	git -C $(LLVM_SRC_DIR)/tools clone ${LLVM_SRC_DEPTH} $(LLVM_BRANCH) $(LLVM_SINGLE_BRANCH) ${LLVM_URL}/polly.git polly
-	git -C $(LLVM_SRC_DIR)/projects clone ${LLVM_SRC_DEPTH} $(LLVM_BRANCH) $(LLVM_SINGLE_BRANCH) ${LLVM_URL}/compiler-rt.git compiler-rt
-	git -C $(LLVM_SRC_DIR)/projects clone ${LLVM_SRC_DEPTH} $(LLVM_BRANCH) $(LLVM_SINGLE_BRANCH) ${LLVM_URL}/openmp.git openmp
-	git -C $(LLVM_SRC_DIR)/projects clone ${LLVM_SRC_DEPTH} $(LLVM_BRANCH) $(LLVM_SINGLE_BRANCH) ${LLVM_URL}/libcxx.git libcxx
-	git -C $(LLVM_SRC_DIR)/projects clone ${LLVM_SRC_DEPTH} $(LLVM_BRANCH) $(LLVM_SINGLE_BRANCH) ${LLVM_URL}/libcxxabi.git libcxxabi
-	git -C $(LLVM_SRC_DIR)/projects clone ${LLVM_SRC_DEPTH} $(LLVM_BRANCH) $(LLVM_SINGLE_BRANCH) ${LLVM_URL}/test-suite.git test-suite
-	touch get-llvm-src-$(LLVM_PROJ)
+get-nothing: clean
 
+get-llvm-src-$(LLVM_PROJ): clean
+	@echo get-llvm-src-$(LLVM_PROJ)
+	rm -rf $(LLVM_SRC_DIR)
+	git clone $(LLVM_SRC_DEPTH) $(LLVM_BRANCH) $(LLVM_URL)/llvm-project.git $(LLVM_SINGLE_BRANCH) $(LLVM_SRC_DIR)
+	touch get-llvm-src-$(LLVM_PROJ)
 
 # Quick test that we can compile and run. Add "-v" for verbose output of compilation
 .PHONY: test
@@ -225,27 +182,33 @@ define helpdata
 make {target} {options}
 
 Valid targets are:
-  help          this help text
-  clean         Remove build/ and dist/
-  distclean     remove build/, dist/ and src/
-  llvm-master   Get, Build, Install master
-  llvm-7.0.0    Get, Build, Install release_70
-  llvm-6.0.0    Get, Build, Install release_60
-  llvm-5.0.0    Get, Build, Install release_50
-  llvm-default  Get, Build, Install the default which is llvm-5.0.0
-  llvm-current  Build, Install what ever is in src/
-  llvm-get-src  Only gets the sources of the specified branch
-                llvm-branch=xxx where xxx is {master|release_60|...}.
-                You may also want to supply LLVM_DEPTH=--depth 1 and
-                LLVM_SINGLE_BRANCH=--no-single-branch as default is --single-branch
-  test          quick test compiling main.cpp and running it statically and shared.
-                Currently static linking with lld is broken,
-		see https://bugs.llvm.org/show_bug.cgi?id=38074
-                so gold is used.
-  rebuild       Rebuild the sources unconditionally
+  help               this help text
+  default            Get, Build, Install the default branch=$(default-branch)
+  build branch=xxx   Get, Build, Install the specified branch
+  get-src branch=xxx Get the specified branch
+  rebuild            Buildit and Install
+  buildit            build the current sources
+  install            install then latest built executables and libs
+  clean              Remove build/ and dist/
+  distclean          remove build/, dist/ and src/
+  test               Quickly test compiling main.cpp and running it statically and shared.
+                     Currently static linking with lld is broken,
+		     see https://bugs.llvm.org/show_bug.cgi?id=38074
+                     so gold is used.
 
 Valid options are:
   verbose=$(verbose) (0 off, 1 on)
+  branch=$(branch) (master|release/8.x|...)
+  sub-projects="$(sub-projects)"
+    Empty is the default or can be any of:
+      clang, clang-tools-extra, libcxx,
+      libcxxabi, libunwind, lldb, compiler-rt,
+      lld, polly, debuginfo-tests
+    in a semi colon list, such as:
+      sub-projects="clang;lld"
+    or the complete list:
+      sub-projects="clang;clang-tools-extra;libcxx;libcxxabi;libunwind;lldb;compiler-rt;lld;polly;debuginfo-tests"
+
   LLVM_URL=$(LLVM_URL) (URL to get source)
   LLVM_BUILD_ENGINE=$(LLVM_BUILD_ENGINE) (Ninja, "Unix Makefiles")
   LLVM_BUILD_TYPE=$(LLVM_BUILD_TYPE) (Release, Debug)

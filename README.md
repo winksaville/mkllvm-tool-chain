@@ -1,20 +1,30 @@
 # Make llvm tool-chain
 
-**See "make help" for the most current information.**
+**See "make help" for more information.**
 
-Use llvm-config to get configuration information such as
-option flags, directories for libraries and include files ...
-
-There are a number of targets, see Makefile.
-As an example, here's how to build master:
+As an example, this will get the sources,  build master and install:
 ```bash
-CC=clang CXX=clang++ make llvm-master
+CC=clang CXX=clang++ make build branch=master
 ```
 
-Here is how to build master with a verbose build
-to see the complier/linker command lines:
+This will "build" all sub-projects for release/8.x
 ```bash
-CC=clang CXX=clang++ make verbose=true llvm-master
+$ make build branch=release/8.x sub-projects="clang;clang-tools-extra;libcxx;libcxxabi;libunwind;lldb;compiler-rt;lld;polly;debuginfo-tests"
+```
+
+To rebuild the current sources and install
+```bash
+CC=clang CXX=clang++ make rebuild
+```
+
+To build the current sources
+```bash
+CC=clang CXX=clang++ make buildit
+```
+
+To install the more recently generated code
+```bash
+CC=clang CXX=clang++ make install
 ```
 
 # clean
@@ -31,17 +41,21 @@ Remove all artifacts and next build will clone the sources
 make distclean
 ```
 
-# Clone clang
+# Notes
 
-For a full clone do of master:
-```bash
-./clone-clang.sh
+This fetches and makes the llvm tool chain. At this point
+it's probably overkill as its now relatively easy to make it because
+of the mono github repo at https://github.com/llvm/llvm-project
+
+The following works and builds everything:
+
 ```
-For a shallow clone do:
-```bash
-./clone-clang.sh depth=1
-```
-For a shallow clone, branch release_50,  one branch to llvm-5.0
-```bash
-./clone-clang.sh depth=1 branch=release_50 single-branch=yes src-dir=llvm-5.0
+ $ git clone git@github.com:winksaville/llvm-project
+ $ cd llvm-project
+ $ mkdir build
+ $ cd build
+ $ CC=clang CXX=clang++ cmake -G Ninja -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;libcxx;libcxxabi;libunwind;compiler-rt;lld;lldb;polly;debuginfo-tests" -DLLVM_USE_LINKER=gold -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_INSTALL_PREFIX=$HOME/prgs/llvm-project/install -DCMAKE_BUILD_TYPE=RelWithDebInfo ../llvm
+ $ ninja
+ $ ninja check-all
+ $ ninja install
 ```

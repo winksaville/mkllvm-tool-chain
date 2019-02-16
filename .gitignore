@@ -3,6 +3,7 @@
 /built-*
 /get-*
 /log-*
+/generated-*
 src/
 dist/
 build/
