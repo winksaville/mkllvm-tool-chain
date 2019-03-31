@@ -1,9 +1,2 @@
-/main-*
-/installed-*
-/built-*
-/get-*
-/log-*
-/generated-*
-src/
-dist/
-build/
+dist
+/gen/

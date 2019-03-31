@@ -1,61 +1,59 @@
-# Make llvm tool-chain
+# Build llvm sources
 
-**See "make help" for more information.**
+The ./Makefile provides allowing multiple versions of llvm to be built and
+tested. Various variables/parameters need to be set which can be done directly
+on the command line or set in \*.cfg files and passed to the makefile by
+setting llvm_cfg=XXX.cfg on the command line or export into the environment.
 
-As an example, this will get the sources,  build master and install:
-```bash
-CC=clang CXX=clang++ make build branch=master
+See [llvm getting started](http://llvm.org/docs/GettingStarted.html) for more
+information on building llvm.
+
+## Prerequesites
+  * gcc 6+
+  * cmake
+  * ninja &| make
+  * gold, bfd &| lld
+
+## Build and install in one step
+For options See `make help` or ./Makefile
+
+Build llvm as defined by the commit associated with lib/llvm/src submodule:
+```
+make -j12
+```
+Example over riding some defaults
+```
+make -j6 LLVM_BUILD_ENGINE=Ninja LLVM_BULID_TYPE=Debug
 ```
 
-This will "build" all sub-projects for release/8.x
-```bash
-$ make build branch=release/8.x sub-projects="clang;clang-tools-extra;libcxx;libcxxabi;libunwind;lldb;compiler-rt;lld;polly;debuginfo-tests"
+## Rebuild current src
+Use the same options as the initial 'all' build
 ```
-
-To rebuild the current sources and install
-```bash
-CC=clang CXX=clang++ make rebuild
+make -j12 rebuild LLVM_BUILD_ENGINE=Ninja LLVM_BULID_TYPE=Debug
 ```
-
-To build the current sources
-```bash
-CC=clang CXX=clang++ make buildit
+## Install after a rebuild
+Use the same options as the initial 'all' build
 ```
-
-To install the more recently generated code
-```bash
-CC=clang CXX=clang++ make install
+make install LLVM_BUILD_ENGINE=Ninja LLVM_BULID_TYPE=Debug
 ```
-
-# clean
-
-Remove build and install artifacts but leaves src untouched
-```bash
+## Clean
+Clean binaries
+```
 make clean
 ```
-
-# distclean
-
-Remove all artifacts and next build will clone the sources
-```bash
+## Distributation Clean
+Clean binaries and sources
+```
 make distclean
 ```
+### changing the commit associated with llvm-default.cfg
 
-# Notes
-
-This fetches and makes the llvm tool chain. At this point
-it's probably overkill as its now relatively easy to make it because
-of the mono github repo at https://github.com/llvm/llvm-project
-
-The following works and builds everything:
-
+When llvm_cfg is not specified or it is llvm-default.cfg the commit associated with the `src` submodule is checked out as the llvm source to be built. To change to a different commit, for instance a tag `llvmorg-8.0.0`, simply clone ponyc and have the `src` submodule up to date and initialized, checkout the desired commit and commit and push it. For example:
 ```
- $ git clone git@github.com:winksaville/llvm-project
- $ cd llvm-project
- $ mkdir build
- $ cd build
- $ CC=clang CXX=clang++ cmake -G Ninja -DLLVM_ENABLE_PROJECTS="clang;clang-tools-extra;libcxx;libcxxabi;libunwind;compiler-rt;lld;lldb;polly;debuginfo-tests" -DLLVM_USE_LINKER=gold -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_INSTALL_PREFIX=$HOME/prgs/llvm-project/install -DCMAKE_BUILD_TYPE=RelWithDebInfo ../llvm
- $ ninja
- $ ninja check-all
- $ ninja install
+git clone --recurse-submodules  https://github.com/<you>/<mkllvm-tool-chain>
+cd src
+git checkout llvmorg-8.0.0
+cd ..
+git commit -m "Update src to llvmorg-8.0.0"
+git push origin master
 ```
