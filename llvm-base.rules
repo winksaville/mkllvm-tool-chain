@@ -80,12 +80,18 @@ clean-built-installed:
 
 # Quick test that we can compile and run. Add "-v" for verbose output of compilation
 .PHONY: test
-test:
-	$(LLVM_INSTALL_DIR_SYMLINK)/bin/clang++ -fuse-ld=gold  -g -o main-gold-static -static -pthread $$($(LLVM_INSTALL_DIR_SYMLINK)/bin/llvm-config --ldflags) main.cpp
-	./main-gold-static 1 2 3
-	$(LLVM_INSTALL_DIR_SYMLINK)/bin/clang++ -fuse-ld=lld  -g -o main-lld-shared  -pthread $$($(LLVM_INSTALL_DIR_SYMLINK)/bin/llvm-config --ldflags) main.cpp
-	./main-lld-shared 4 5 6
+test: test-shared test-static
 
+test-shared:
+	ldparams="$$($(LLVM_INSTALL_DIR_SYMLINK)/bin/llvm-config --ldflags --libs --link-shared) -Wl,-rpath,$(LLVM_INSTALL_DIR_SYMLINK)/lib" ; \
+	$(LLVM_INSTALL_DIR_SYMLINK)/bin/clang++ -v -fuse-ld=$(LLVM_LINKER) -fPIC -g -o main-shared -pthread $${ldparams} main.cpp
+	./main-shared 1 2 3
+
+.PHONY: test-static
+test-static:
+	ldparams="$$($(LLVM_INSTALL_DIR_SYMLINK)/bin/llvm-config --ldflags --libs --link-static)" ; \
+	$(LLVM_INSTALL_DIR_SYMLINK)/bin/clang++ -v -fuse-ld=$(LLVM_LINKER) -fPIC -g -o main-static -static -pthread $${ldparams} main.cpp
+	./main-static 4 5 6
 
 .PHONY: help
 help:

@@ -46,14 +46,14 @@ Clean binaries and sources
 ```
 make distclean
 ```
-### changing the commit associated with llvm-default.cfg
+### Changing the commit associated with llvm-default.cfg
 
-When llvm_cfg is not specified or it is llvm-default.cfg the commit associated with the `src` submodule is checked out as the llvm source to be built. To change to a different commit, for instance a tag `llvmorg-8.0.0`, simply clone ponyc and have the `src` submodule up to date and initialized, checkout the desired commit and commit and push it. For example:
+When llvm_cfg is not specified or it is llvm-default.cfg the commit associated with the submodule is checked out as the llvm source to be built. To change to a different commit, for instance a tag `llvmorg-8.0.0` do something like:
 ```
-git clone --recurse-submodules  https://github.com/<you>/<mkllvm-tool-chain>
-cd src
-git checkout llvmorg-8.0.0
-cd ..
+git clone --recurse-submodules  https://github.com/<you>/mkllvm-tool-chain
+cd mkllvm-tool-chain
+git checkout -b update-lib-llvm-src-to-llvmorg-8.0.0
+(cd src ; git checkout llvmorg-8.0.0)
 git commit -m "Update src to llvmorg-8.0.0"
-git push origin master
+git push origin update-src-to-llvmorg-8.0.0
 ```
