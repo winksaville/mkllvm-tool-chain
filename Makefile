@@ -31,6 +31,9 @@ endif
 LLVM_BUILD_ENGINE ?= Ninja
 LLVM_BUILD_TYPE ?= Release
 LLVM_LINKER ?= gold
+LLVM_BUILD_LLVM_DYLIB ?= ON
+LLVM_LINK_LLVM_DYLIB ?= ON
+BUILD_SHARED_LIBS ?= OFF
 
 # There must always be a LLVM_CHECKOUT_REF
 ifeq (,$(LLVM_CHECKOUT_REF))
@@ -96,24 +99,27 @@ else
 endif
 
 # Output some debug before running any recepies
-#$(info lib/llvm/Makefile MAKECMDGOALS="$(MAKECMDGOALS)")
-#$(info lib/llvm/Makefile LLVM_CFG="$(LLVM_CFG)")
-#$(info lib/llvm/Makefile LLVM_RULES="$(LLVM_RULES)")
-#$(info lib/llvm/Makefile LLVM_CHECKOUT_REF="$(LLVM_CHECKOUT_REF)")
-#$(info lib/llvm/Makefile LLVM_READ_LINK="$(LLVM_READ_LINK)")
-#$(info lib/llvm/Makefile LLVM_TGT_TAG="$(LLVM_TGT_TAG)")
-#$(info lib/llvm/Makefile LLVM_TGT_DIR="$(LLVM_TAG_DIR)")
-#$(info lib/llvm/Makefile LLVM_BUILD_ENGINE="$(LLVM_BUILD_ENGINE)")
-#$(info lib/llvm/Makefile LLVM_BUILD_TYPE="$(LLVM_BUILD_TYPE)")
-#$(info lib/llvm/Makefile LLVM_LINKER="$(LLVM_LINKER)")
-#$(info lib/llvm/Makefile LLVM_USE_LINKER="$(LLVM_USE_LINKER)")
-#$(info lib/llvm/Makefile LLVM_SRC_DIR="$(LLVM_SRC_DIR)")
-#$(info lib/llvm/Makefile LLVM_BUILD_DIR="$(LLVM_BUILD_DIR)")
-#$(info lib/llvm/Makefile LLVM_INSTALL_DIR="$(LLVM_INSTALL_DIR)")
-#$(info lib/llvm/Makefile LLVM_INSTALL_DIR_SYMLINK="$(LLVM_INSTALL_DIR_SYMLINK)")
-#$(info lib/llvm/Makefile GET_LLVM_SRC_TARGET="$(GET_LLVM_SRC_TARGET)")
-#$(info lib/llvm/Makefile LLVM_PROJECT_LIST="$(LLVM_PROJECT_LIST)")
-#$(info lib/llvm/Makefile PROJECT_LIST="$(PROJECT_LIST)")
+$(info lib/llvm/Makefile MAKECMDGOALS="$(MAKECMDGOALS)")
+$(info lib/llvm/Makefile LLVM_CFG="$(LLVM_CFG)")
+$(info lib/llvm/Makefile LLVM_RULES="$(LLVM_RULES)")
+$(info lib/llvm/Makefile LLVM_CHECKOUT_REF="$(LLVM_CHECKOUT_REF)")
+$(info lib/llvm/Makefile LLVM_READ_LINK="$(LLVM_READ_LINK)")
+$(info lib/llvm/Makefile LLVM_TGT_TAG="$(LLVM_TGT_TAG)")
+$(info lib/llvm/Makefile LLVM_TGT_DIR="$(LLVM_TGT_DIR)")
+$(info lib/llvm/Makefile LLVM_BUILD_ENGINE="$(LLVM_BUILD_ENGINE)")
+$(info lib/llvm/Makefile LLVM_BUILD_TYPE="$(LLVM_BUILD_TYPE)")
+$(info lib/llvm/Makefile LLVM_BUILD_LLVM_DYLIB ="$(LLVM_BUILD_LLVM_DYLIB)")
+$(info lib/llvm/Makefile LLVM_LINK_LLVM_DYLIB ="$(LLVM_LINK_LLVM_DYLIB)")
+$(info lib/llvm/Makefile BUILD_SHARED_LIBS ="$(BUILD_SHARED_LIBS)")
+$(info lib/llvm/Makefile LLVM_LINKER="$(LLVM_LINKER)")
+$(info lib/llvm/Makefile LLVM_USE_LINKER="$(LLVM_USE_LINKER)")
+$(info lib/llvm/Makefile LLVM_SRC_DIR="$(LLVM_SRC_DIR)")
+$(info lib/llvm/Makefile LLVM_BUILD_DIR="$(LLVM_BUILD_DIR)")
+$(info lib/llvm/Makefile LLVM_INSTALL_DIR="$(LLVM_INSTALL_DIR)")
+$(info lib/llvm/Makefile LLVM_INSTALL_DIR_SYMLINK="$(LLVM_INSTALL_DIR_SYMLINK)")
+$(info lib/llvm/Makefile GET_LLVM_SRC_TARGET="$(GET_LLVM_SRC_TARGET)")
+$(info lib/llvm/Makefile LLVM_PROJECT_LIST="$(LLVM_PROJECT_LIST)")
+$(info lib/llvm/Makefile PROJECT_LIST="$(PROJECT_LIST)")
 
 # Include the rules
 #  Having LLVM_RULES a separate file allows it to be specified
