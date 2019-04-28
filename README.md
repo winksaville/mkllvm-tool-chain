@@ -14,6 +14,37 @@ information on building llvm.
   * ninja &| make
   * gold, bfd &| lld
 
+## simple.sh
+
+The bash script is a very simple script that builds the
+llvm toochain. Modify/use it to build your own simple script.
+
+Simple builds llvm;clang;compiler-rt in src/build-${id} with
+logs in src/log-${id].txt and install in ~/local-${id}
+
+```
+$ ./simple.sh
+Usage: ./simple.sh id
+ Missing id
+
+$ make get-submodule
+$ ./simple.sh xyz
+++ cmake ../llvm -G Ninja '-DLLVM_ENABLE_PROJECTS=clang;compiler-rt' -DCMAKE_INSTALL_PREFIX=/home/wink/local-xyz -DCMAKE_BUILD_TYPE=Release -DLLVM_USE_LINKER=gold
+CMake Deprecation Warning at CMakeLists.txt:14 (cmake_policy):
+  The OLD behavior for policy CMP0051 will be removed from a future version
+  of CMake.
+
+  The cmake-policies(7) manual explains that the OLD behaviors of all
+  policies are deprecated and that a policy should be set to OLD only under
+  specific short-term circumstances.  Projects should be ported to the NEW
+  behavior and not rely on setting a policy to OLD.
+
+
+-- The C compiler identification is GNU 8.3.0
+-- The CXX compiler identification is GNU 8.3.0
+...
+```
+
 ## Build and install in one step
 For options See `make help` or ./Makefile
 
