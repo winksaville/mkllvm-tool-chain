@@ -1,10 +1,10 @@
 #!/bin/bash
-# Builds llvm;clang;lld;compiler-rt in src/build-${id} with
-# logs in src/log-${id].txt and install in ~/local-${id}
+# Builds llvm;clang;lld;compiler-rt in build-${id} with
+# logs in log-${id].txt and install in ~/local-${id}
 
 id=$1
 log=../log-${id}.txt
-build_dir=src/build-${id}
+build_dir=build-${id}
 install_dir=~/local-${id}
 
 if [ "${id}" == "" ]; then printf "Usage: $0 id\n Missing id\n"; exit 1; fi
@@ -12,16 +12,20 @@ if [ "${id}" == "" ]; then printf "Usage: $0 id\n Missing id\n"; exit 1; fi
 mkdir -p ${build_dir}
 cd ${build_dir}
 
-jobcnt=${jobcnt:-$(( $(nproc) - 1 ))}
+if [ "${jobcnt}" == "" ]; then
+  jobcnt=${jobcnt:-$(( $(nproc) - 1 ))};
+fi
 if [[ ${jobcnt} < 1 ]]; then jobcnt=1; fi
 
 rm -f ${log}
 touch ${log}
 
+enabled_projects="clang;lld;compiler-rt"
+
 # Use set -x so we see the commands.
 # Substitue check-all for others like check-tsan:
 cmd="set -x ; \
-  cmake ../llvm -G Ninja -DLLVM_ENABLE_PROJECTS=\"clang;lld;compiler-rt\" -DCMAKE_INSTALL_PREFIX=${install_dir} -DCMAKE_BUILD_TYPE=Release -DLLVM_USE_LINKER=gold && \
+  cmake ../llvm -G Ninja -DLLVM_ENABLE_PROJECTS=\"${enabled_projects}\" -DCMAKE_INSTALL_PREFIX=${install_dir} -DCMAKE_BUILD_TYPE=Release -DLLVM_BUILD_LLVM_DYLIB=ON -DLLVM_LINK_LLVM_DYLIB=ON && \
   ninja -j${jobcnt} -v && \
   ninja -j${jobcnt} -v check-all"
 
