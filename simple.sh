@@ -62,7 +62,7 @@ fi
 # Use set -x so we see the commands.
 # Substitue check-all for others like check-tsan:
 cmd="set -x ; \
-  cmake ../llvm -G Ninja -DLLVM_ENABLE_PROJECTS=\"${enabled_projects}\" -D:CMAKE_INSTALL_PREFIX=${install_dir} -DCMAKE_BUILD_TYPE=Release && \
+  cmake ../llvm -G Ninja -DLLVM_ENABLE_PROJECTS=\"${enabled_projects}\" -DCMAKE_INSTALL_PREFIX=${install_dir} -DCMAKE_BUILD_TYPE=Release && \
   ninja -j${jobcnt} -v"
 
 #  ninja -j${jobcnt} -v && \
